@@ -1,9 +1,13 @@
 class SubsReader
   require './regex-patterns.rb'
-  include LinePatterns
+  require './cue.rb'
+  include Patterns
 
   def initialize(subs_path)
     @subs_path = subs_path
+    @type = recognize
+    @fps = 23.976
+    @cues = []
   end
 
   def recognize
@@ -17,14 +21,22 @@ class SubsReader
     'uk'
   end
 
+  def load_cues
+    read_subs false
+  end
+
   def check_syntax
-    case recognize
+    read_subs true
+  end
+
+  def read_subs(check_syntax)
+    case @type
       when 'sr'
-        check_sub_rip_syntax
+        read_sub_rip check_syntax
       when 'md'
-        check_micro_dvd_syntax
+        read_micro_dvd check_syntax
       when 'sv'
-        check_subviewer_syntax
+        read_subviewer check_syntax
       else
         'Unknown file format'
     end
