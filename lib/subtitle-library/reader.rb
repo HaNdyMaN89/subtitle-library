@@ -194,6 +194,63 @@ class SubsReader
       error_log == '' ? 'No errors were found.' : error_log
     end
   end
+
+  def read_subviewer(check_syntax)
+    actual_lines = 0
+    error_log = ""
+    last_end_time = Time.mktime 1, 1, 1
+    File.open(@subs_path, 'r') do |subs|
+      if check_syntax
+        metadata = ''
+        while line = subs.gets
+          actual_lines += 1
+          strip_line = line.strip
+          if strip_line != ''
+            if /\A\d/ =~ strip_line
+              first_timing = strip_line
+              error_log += "Syntax error in metadata.\n" unless SUBVIEWER_METADATA =~ metadata
+              break
+            end
+            metadata += strip_line
+          end
+        end
+      end
+      while true
+        break unless line
+        actual_lines += 1
+        strip_line = line.strip
+        if strip_line != ''
+          if SUBVIEWER_LINE =~ strip_line
+            start_end = first_timing.split ','
+            time_args = [1,1,1] + start_end[0].split(/\.|:/).collect(&:to_i)
+            time_args[6] *= 1000
+            start_time = Time.mktime *time_args
+            time_args = [1,1,1] + start_end[1].split(/\.|:/).collect(&:to_i)
+            time_args[6] *= 1000
+            end_time = Time.mktime *time_args
+            if start_time.day + end_time.day != 2 or start_time >= end_time or start_time < last_end_time
+              if check_syntax
+                error_log += "Syntax error at line #{actual_lines}.\n"
+              else
+                puts "Invalid timing at line #{actual_lines}"
+              end
+            else
+              line = subs.gets
+              break unless line
+              actual_lines += 1
+              @cues << Cue.new(start_time, end_time, line.gsub('[br]', "\n")) unless check_syntax
+              last_end_time = end_time
+            end
+          elsif check_syntax
+            error_log += "Syntax error at line #{actual_lines}.\n"
+          end
+        end
+        line = subs.gets
+      end
+    end
+    if check_syntax
+      error_log == '' ? 'No errors were found.' : error_log
+    end
+  end
 end
 
-puts 'a'
