@@ -67,4 +67,24 @@ class SubsWriter
       end
     end
   end
+
+  def save_timing_to_timing(new_path, new_type)
+    line_count = 1
+    bef_mil, bet_start_end = new_type == 'sr' ? [',', ' --> '] : ['.', ',']
+    File.open(@subs_path, 'w') do |subs|
+      subs.write("[STYLE]no\n") if sub_type == 'sv'
+      @cues.each do |cue|
+        timing_line = cue.start.to_s.split(' ')[1] + bef_mil + ("%03d" % (cue.start.usec / 1000)) + bet_start_end
+        timing_line += cue.ending.to_s.split(' ')[1] + bef_mil + ("%03d" % (cue.ending.usec / 1000))
+        if new_type == 'sr'
+          subs.write(line_count.to_s + "\n" + timing_line + "\n")
+          subs.write(cue.text + "\n\n")
+          line_count += 1
+        else
+          subs.write(timing_line + "\n")
+          subs.write(cue.text.gsub("\n", '[br]') + "\n\n")
+        end
+      end
+    end
+  end
 end
