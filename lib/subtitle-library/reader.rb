@@ -3,6 +3,8 @@ class SubsReader
   require './cue.rb'
   include Patterns
 
+  attr_reader :type, :cues, :fps
+
   def initialize(subs_path)
     @subs_path = subs_path
     @type = recognize
