@@ -25,7 +25,19 @@ class SubsWriter
     File.open(@subs_path, 'w') do |subs|
       subs.write('{1}{1}' + @fps.to_s + "\n")
       @cues.each do |cue|
-        subs.write('{' + cue.start.to_s + '}{' + cue.end.to_s + '}' + cue.text.gsub("\n", "|") + '\n')
+        subs.write('{' + cue.start.to_s + '}{' + cue.ending.to_s + '}' + cue.text.gsub("\n", "|") + "\n")
+      end
+    end
+  end
+
+  def save_timing_to_frames(new_path)
+    File.open(@subs_path, 'w') do |subs|
+      subs.write('{1}{1}' + @fps.to_s + "\n")
+      bottom_time = Time.mktime 1, 1, 1
+      @cues.each do |cue|
+        start_frame = ((cue.start - bottom_time) * fps).ceil
+        end_frame = ((cue.ending - bottom_time) * fps).ceil
+        subs.write('{' + start_frame.to_s + '}{' + end_frame.to_s + '}' + + cue.text.gsub("\n", "|") + "\n")
       end
     end
   end
