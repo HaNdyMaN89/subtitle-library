@@ -19,5 +19,14 @@ class SubsWriter
         save_timing_to_timing new_path, new_type
       end
     end
-  end     
+  end
+
+  def save_frames_to_frames(new_path)
+    File.open(@subs_path, 'w') do |subs|
+      subs.write('{1}{1}' + @fps.to_s + "\n")
+      @cues.each do |cue|
+        subs.write('{' + cue.start.to_s + '}{' + cue.end.to_s + '}' + cue.text.gsub("\n", "|") + '\n')
+      end
+    end
+  end
 end
