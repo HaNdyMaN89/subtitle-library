@@ -203,28 +203,25 @@ class SubsReader
     error_log = ""
     last_end_time = Time.mktime 1, 1, 1
     File.open(@subs_path, 'r') do |subs|
-      if check_syntax
-        metadata = ''
-        while line = subs.gets
-          actual_lines += 1
-          strip_line = line.strip
-          if strip_line != ''
-            if /\A\d/ =~ strip_line
-              first_timing = strip_line
-              error_log += "Syntax error in metadata.\n" unless SUBVIEWER_METADATA =~ metadata
-              break
-            end
-            metadata += strip_line
+      metadata = ''
+      while line = subs.gets
+        actual_lines += 1
+        strip_line = line.strip
+        if strip_line != ''
+          if /\A\d/ =~ strip_line
+            first_timing = strip_line
+            error_log += "Syntax error in metadata.\n" if check_syntax and not SUBVIEWER_METADATA =~ metadata
+            break
           end
+          metadata += strip_line
         end
       end
-      while true
-        break unless line
+      while line
         actual_lines += 1
         strip_line = line.strip
         if strip_line != ''
           if SUBVIEWER_LINE =~ strip_line
-            start_end = first_timing.split ','
+            start_end = strip_line.split ','
             time_args = [1,1,1] + start_end[0].split(/\.|:/).collect(&:to_i)
             time_args[6] *= 1000
             start_time = Time.mktime *time_args
@@ -233,7 +230,7 @@ class SubsReader
             end_time = Time.mktime *time_args
             if start_time.day + end_time.day != 2 or start_time >= end_time or start_time < last_end_time
               if check_syntax
-                error_log += "Syntax error at line #{actual_lines}.\n"
+                error_log += "Invalid timing at line #{actual_lines}.\n"
               else
                 puts "Invalid timing at line #{actual_lines}"
               end
@@ -257,12 +254,3 @@ class SubsReader
   end
 end
 
-#r = SubsReader.new 'C:\Users\HaNdyMaN\Desktop\b1.srt'
-r = SubsReader.new 'C:\Users\HaNdyMaN\Desktop\b2.sub'
-#r = SubsReader.new 'C:\Users\HaNdyMaN\Desktop\b3.sub'
-r.load_cues
-r.cues.each do |cue|
-  puts cue.start.to_s + ' ' + cue.ending.to_s + ' ' + cue.text
-end
-puts r.cues.length
-puts r.check_syntax
