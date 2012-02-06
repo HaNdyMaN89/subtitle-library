@@ -25,6 +25,30 @@ class SubsChanger
     end
   end
 
+  def disposition_microdvd(pos, fps, stretch, disp_seconds)
+    bottom_time = Time.mktime 1, 1, 1
+    invalid_timing = false
+    if stretch
+      step = disp_seconds ? (pos * fps).ceil : pos
+      disposition = 0
+    else
+      disposition = disp_seconds ? (pos * fps).ceil : pos
+    end
+    @reader.cues.each do |cue|
+      cue.start += disposition
+      cue.ending += disposition
+      new_start = bottom_time + cue.start / fps
+      new_end = bottom_time + cue.ending / fps
+      if new_start.year + new_start.month + new_start.day + new_end.year + new_end.month + new_end.day != 6
+        invalid_timing = true
+        puts 'Invalid timing'
+        break
+      end
+      disposition += step if stretch
+    end
+    SubsWriter.new(@reader).save_as(@subs_path, @reader.type) unless invalid_timing
+  end
+
   def disposition_timing(pos, fps, stretch, disp_seconds)
     invalid_timing = false
     if stretch
