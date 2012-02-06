@@ -7,6 +7,15 @@ class SubsChanger
     @reader = SubsReader.new subs_path
   end
 
+  def shift(disp_type, pos, fps)
+    fps = @reader.fps if fps == -1
+    if @reader.type == 'md'
+      disposition_microdvd pos, fps, false, disp_type == 'ss'
+    else
+      disposition_timing pos, fps, false, disp_type == 'ss'
+    end
+  end
+
   def set_max_line(max_line)
     line_break = @reader.type == 'sr' ? "\n" : (@reader.type == 'md' ? '|' : '[br]')
     @reader.cues.each do |cue|
