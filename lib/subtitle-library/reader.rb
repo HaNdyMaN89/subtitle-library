@@ -55,7 +55,7 @@ class SubsReader
         actual_lines += 1
         break unless line
         strip_line = line.strip
-        while strip_line == '' or /\d+$/ =~ strip_line
+        while strip_line == '' or /\A\d+$/ =~ strip_line
           actual_lines += 1
           line = subs.gets
           unless line
@@ -66,6 +66,7 @@ class SubsReader
         end
         break if is_eof
         if SUB_RIP_LINE =~ strip_line
+        puts strip_line
           match = SUB_RIP_TIMING.match(strip_line)
           time_args = [1,1,1] + match.to_s.split(/,|:/).collect(&:to_i)
           time_args[6] *= 1000
@@ -117,12 +118,12 @@ class SubsReader
             actual_lines += 1
             line = subs.gets
             unless line
-              @cues << Cue.new(start_time, end_time, text.rstrip) unless check_syntax
               is_eof = True
               break
             end
             strip_line = line.strip
           end
+          @cues << Cue.new(start_time, end_time, text.rstrip) unless check_syntax
           break if is_eof
         elsif check_syntax
           error_log += "Syntax error at line #{actual_lines}.\n"
@@ -130,7 +131,7 @@ class SubsReader
           line = subs.gets
           break unless line
           strip_line = line.strip
-          while not /\d+$/ =~ strip_line
+          while not /\A\d+$/ =~ strip_line
             line = subs.gets
             unless line
               is_eof = true
@@ -256,3 +257,12 @@ class SubsReader
   end
 end
 
+r = SubsReader.new 'C:\Users\HaNdyMaN\Desktop\Battle.Of.Warsaw.1920.2011.PROPER.DVDRip.XviD-AFO.CD1.srt'
+#r = SubsReader.new 'C:\Documents and Settings\trizov\My Documents\Downloads\test.sub'
+#r = SubsReader.new 'C:\Documents and Settings\trizov\My Documents\Downloads\test1.sub'
+r.load_cues
+r.cues.each do |cue|
+  puts cue.start.to_s + ' ' + cue.ending.to_s + ' ' + cue.text
+end
+puts r.cues.length
+#puts r.check_syntax
