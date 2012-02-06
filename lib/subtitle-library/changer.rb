@@ -25,6 +25,27 @@ class SubsChanger
     end
   end
 
+  def disposition_timing(pos, fps, stretch, disp_seconds)
+    invalid_timing = false
+    if stretch
+      step = disp_seconds ? pos : pos / fps
+      disposition = 0
+    else
+      disposition = disp_seconds ? pos : pos / fps
+    end
+    @reader.cues.each do |cue|
+      cue.start += disposition
+      cue.ending += disposition
+      if cue.start.year + cue.start.month + cue.start.day + cue.ending.year + cue.ending.month + cue.ending.day != 6
+        invalid_timing = true
+        puts 'Invalid timing'
+        break
+      end
+      disposition += step if stretch
+    end
+    SubsWriter.new(@reader).save_as(@subs_path, @reader.type) unless invalid_timing
+  end
+
   def set_max_line(max_line)
     line_break = @reader.type == 'sr' ? "\n" : (@reader.type == 'md' ? '|' : '[br]')
     @reader.cues.each do |cue|
