@@ -149,46 +149,18 @@ class SubsReader
     end
     [is_eof, actual_lines, strip_line] + (append ? [text] : [])
   end
-
+  
   def read_micro_dvd(check_syntax)
-    actual_lines = 0
     error_log = ""
     last_end_frame = 0
     File.open(@subs_path, 'r') do |subs|
-      line = subs.gets
+      line, actual_lines = find_out_fps subs
       while line
         actual_lines += 1
         strip_line = line.strip
         if strip_line != ''
           if MICRO_DVD_LINE =~ strip_line
-            first_line = MICRO_DVD_LINE.match(strip_line).post_match.strip
-            if /\d+\.?\d+/ =~ first_line
-              @fps = first_line.to_f
-              line = subs.gets
-            end
-            break
-          end
-        end
-        line = subs.gets
-      end
-      while line
-        actual_lines += 1
-        strip_line = line.strip
-        if strip_line != ''
-          if MICRO_DVD_LINE =~ strip_line
-            match = /\d+/.match strip_line
-            start_frame = match.to_s.to_i
-            match = /\d+/.match match.post_match
-            end_frame = match.to_s.to_i
-            if start_frame <= end_frame and start_frame >= last_end_frame
-              unless check_syntax
-                text = MICRO_DVD_LINE.match(strip_line).post_match
-                @cues << Cue.new(start_frame, end_frame, text.gsub('|', "\n"))
-              end
-              last_end_frame = end_frame
-            elsif check_syntax
-              error_log += "Syntax error at line #{actual_lines}.\n"
-            end
+            last_end_frame, error_log = add_new_line strip_line, last_end_frame, error_log, check_syntax
           elsif check_syntax
             error_log += "Syntax error at line #{actual_lines}.\n"
           end
@@ -199,6 +171,44 @@ class SubsReader
     if check_syntax
       error_log == '' ? 'No errors were found.' : error_log
     end
+  end
+
+  def find_out_fps(subs)
+    line = subs.gets
+    actual_lines = 0
+    while line
+      actual_lines += 1
+      strip_line = line.strip
+      if strip_line != ''
+        if MICRO_DVD_LINE =~ strip_line
+          first_line = MICRO_DVD_LINE.match(strip_line).post_match.strip
+          if /\A\d*\.?\d*$/ =~ first_line
+            @fps = first_line.to_f
+            line = subs.gets
+          end
+          break
+        end
+      end
+      line = subs.gets
+    end
+    [line, actual_lines]
+  end
+
+  def add_new_line(line, last_end_frame, error_log, check_syntax)
+    match = /\d+/.match line
+    start_frame = match.to_s.to_i
+    match = /\d+/.match match.post_match
+    end_frame = match.to_s.to_i
+    if start_frame <= end_frame and start_frame >= last_end_frame
+      unless check_syntax
+        text = MICRO_DVD_LINE.match(line).post_match
+        @cues << Cue.new(start_frame, end_frame, text.gsub('|', "\n"))
+      end
+      last_end_frame = end_frame
+    elsif check_syntax
+      error_log += "Syntax error at line #{actual_lines}.\n"
+    end
+    [last_end_frame, error_log]
   end
 
   def read_subviewer(check_syntax)
