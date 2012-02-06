@@ -212,38 +212,19 @@ class SubsReader
   end
 
   def read_subviewer(check_syntax)
-    actual_lines = 0
-    error_log = ""
+    error_log = ''
     last_end_time = Time.mktime 1, 1, 1
     File.open(@subs_path, 'r') do |subs|
-      metadata = ''
-      while line = subs.gets
-        actual_lines += 1
-        strip_line = line.strip
-        if strip_line != ''
-          if /\A\d/ =~ strip_line
-            first_timing = strip_line
-            error_log += "Syntax error in metadata.\n" if check_syntax and not SUBVIEWER_METADATA =~ metadata
-            break
-          end
-          metadata += strip_line
-        end
-      end
+      actual_lines, error_log, line = read_metadata subs, check_syntax 
       while line
         actual_lines += 1
         strip_line = line.strip
         if strip_line != ''
           if SUBVIEWER_LINE =~ strip_line
-            start_end = strip_line.split ','
-            time_args = [1,1,1] + start_end[0].split(/\.|:/).collect(&:to_i)
-            time_args[6] *= 1000
-            start_time = Time.mktime *time_args
-            time_args = [1,1,1] + start_end[1].split(/\.|:/).collect(&:to_i)
-            time_args[6] *= 1000
-            end_time = Time.mktime *time_args
+            start_time, end_time = parse_subviewer_timing strip_line
             if start_time.day + end_time.day != 2 or start_time >= end_time or start_time < last_end_time
               if check_syntax
-                error_log += "Invalid timing at line #{actual_lines}.\n"
+                error_log += "Syntax error at line #{actual_lines}.\n"
               else
                 puts "Invalid timing at line #{actual_lines}"
               end
@@ -264,6 +245,34 @@ class SubsReader
     if check_syntax
       error_log == '' ? 'No errors were found.' : error_log
     end
+  end
+
+  def read_metadata(subs, check_syntax)
+    actual_lines = 0
+    error_log = ''
+    metadata = ''
+    while line = subs.gets
+      actual_lines += 1
+      strip_line = line.strip
+      if strip_line != ''
+        if /\A\d/ =~ strip_line
+          error_log += "Syntax error in metadata.\n" if check_syntax and not SUBVIEWER_METADATA =~ metadata
+          break
+        end
+        metadata += strip_line
+      end
+    end
+    [actual_lines, error_log, line]
+  end
+
+  def parse_subviewer_timing(line)
+    start_end = line.split ','
+    time_args = [1,1,1] + start_end[0].split(/\.|:/).collect(&:to_i)
+    time_args[6] *= 1000
+    start_time = Time.mktime *time_args
+    time_args = [1,1,1] + start_end[1].split(/\.|:/).collect(&:to_i)
+    time_args[6] *= 1000
+    [start_time, Time.mktime(*time_args)]
   end
 end
 
