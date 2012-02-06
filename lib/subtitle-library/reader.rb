@@ -66,7 +66,6 @@ class SubsReader
         end
         break if is_eof
         if SUB_RIP_LINE =~ strip_line
-        puts strip_line
           match = SUB_RIP_TIMING.match(strip_line)
           time_args = [1,1,1] + match.to_s.split(/,|:/).collect(&:to_i)
           time_args[6] *= 1000
@@ -164,6 +163,7 @@ class SubsReader
               @fps = first_line.to_f
               line = subs.gets
             end
+            break
           end
         end
         line = subs.gets
@@ -257,12 +257,12 @@ class SubsReader
   end
 end
 
-r = SubsReader.new 'C:\Users\HaNdyMaN\Desktop\Battle.Of.Warsaw.1920.2011.PROPER.DVDRip.XviD-AFO.CD1.srt'
-#r = SubsReader.new 'C:\Documents and Settings\trizov\My Documents\Downloads\test.sub'
-#r = SubsReader.new 'C:\Documents and Settings\trizov\My Documents\Downloads\test1.sub'
+#r = SubsReader.new 'C:\Users\HaNdyMaN\Desktop\b1.srt'
+r = SubsReader.new 'C:\Users\HaNdyMaN\Desktop\b2.sub'
+#r = SubsReader.new 'C:\Users\HaNdyMaN\Desktop\b3.sub'
 r.load_cues
 r.cues.each do |cue|
   puts cue.start.to_s + ' ' + cue.ending.to_s + ' ' + cue.text
 end
 puts r.cues.length
-#puts r.check_syntax
+puts r.check_syntax
