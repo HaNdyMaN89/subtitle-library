@@ -55,13 +55,11 @@ class SubsReader
         break if is_eof
         if SUB_RIP_LINE =~ strip_line
           start_time, end_time = parse_sub_rip_timing strip_line
-          if start_time.day + end_time.day != 2 or start_time >= end_time or start_time < last_end_time
-            if check_syntax
-              error_log += "Invalid timing at #{actual_lines}.\n"
-            else
-              puts "Invalid timing at #{actual_lines}.\n"
-            end
-            break
+          valid_timing, error_log = check_timing start_time, end_time, last_end_time, error_log, check_syntax
+          unless valid_timing
+            is_eof, actual_lines, strip_line = read_until_index subs, actual_lines, line, false
+            break if is_eof
+            next          
           end
           last_end_time = end_time
           line = subs.gets
@@ -93,6 +91,10 @@ class SubsReader
           break if is_eof
         elsif check_syntax
           error_log += "Syntax error at line #{actual_lines}.\n"
+          line = subs.gets
+          break unless line
+          is_eof, actual_lines, strip_line = read_until_index subs, actual_lines, line, false
+          break if is_eof          
         else
           line = subs.gets
           break unless line
@@ -105,6 +107,20 @@ class SubsReader
       error_log == '' ? 'No errors were found.' : error_log
     end
   end
+
+  def check_timing(start_time, end_time, last_end_time, error_log, check_syntax)
+    if start_time.year + start_time.month + start_time.day +
+      end_time.year + end_time.month + end_time.day != 6 or
+        start_time >= end_time or start_time < last_end_time
+          if check_syntax
+            error_log += "Invalid timing at #{actual_lines}.\n"
+          else
+            puts "Invalid timing at #{actual_lines}.\n"
+          end
+          [false, error_log]
+    end
+    [true, error_log]
+  end  
 
   def read_until_timing(subs, actual_lines)
     line = subs.gets
