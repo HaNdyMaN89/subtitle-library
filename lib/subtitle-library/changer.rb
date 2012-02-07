@@ -45,7 +45,7 @@ class SubsChanger
           new_start < bottom_time or new_end < bottom_time
             invalid_timing = true
             puts 'Invalid timing'
-            break      
+            break
       end
       disposition = (disposition + step).ceil if stretch
     end
@@ -69,7 +69,7 @@ class SubsChanger
           cue.start < bottom_time or cue.ending < bottom_time
             invalid_timing = true
             puts 'Invalid timing'
-            break      
+            break
       end
       disposition += step if stretch
     end
