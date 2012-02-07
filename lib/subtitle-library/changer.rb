@@ -33,7 +33,7 @@ class SubsChanger
       step = disp_seconds ? (pos * fps).ceil : pos
       disposition = 0
     else
-      disposition = disp_seconds ? (pos * fps).ceil : pos
+      disposition = disp_seconds ? (pos * fps).ceil : pos.ceil
     end
     @reader.cues.each do |cue|
       cue.start += disposition
@@ -45,7 +45,7 @@ class SubsChanger
         puts 'Invalid timing'
         break
       end
-      disposition += step if stretch
+      disposition = (disposition + step).ceil if stretch
     end
     SubsWriter.new(@reader).save_as(@subs_path, @reader.type) unless invalid_timing
   end
