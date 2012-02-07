@@ -93,7 +93,7 @@ class SubsChanger
         words = text.split /\s*(#{Regexp.escape(line_break)})*\s*/
         current_line = ''
         for i in (0 .. words.length - 1)
-          current_line += (current_line == '' ? ' ' : '') + words[i]
+          current_line += (current_line == '' ? '' : ' ') + words[i]
           if i == words.length - 1
             new_text += current_line
             break
