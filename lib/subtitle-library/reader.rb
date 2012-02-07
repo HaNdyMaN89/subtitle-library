@@ -237,20 +237,18 @@ class SubsReader
         strip_line = line.strip
         if strip_line != ''
           if SUBVIEWER_LINE =~ strip_line
-            start_time, end_time = parse_subviewer_timing strip_line
-            if start_time.day + end_time.day != 2 or start_time >= end_time or start_time < last_end_time
-              if check_syntax
-                error_log += "Syntax error at line #{actual_lines}.\n"
-              else
-                puts "Invalid timing at line #{actual_lines}"
-              end
-            else
+            start_time, end_time = parse_timing strip_line
+            valid_timing, error_log = check_timing start_time, end_time, last_end_time, error_log, check_syntax
+            unless valid_timing
+              break unless subs.gets
               line = subs.gets
-              break unless line
-              actual_lines += 1
-              @cues << Cue.new(start_time, end_time, line.gsub('[br]', "\n")) unless check_syntax
-              last_end_time = end_time
+              next
             end
+            line = subs.gets
+            break unless line
+            actual_lines += 1
+            @cues << Cue.new(start_time, end_time, line.strip.gsub('[br]', "\n")) unless check_syntax
+            last_end_time = end_time            
           elsif check_syntax
             error_log += "Syntax error at line #{actual_lines}.\n"
           end
