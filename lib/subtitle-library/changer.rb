@@ -40,10 +40,12 @@ class SubsChanger
       cue.ending += disposition
       new_start = bottom_time + cue.start / fps
       new_end = bottom_time + cue.ending / fps
-      if new_start.year + new_start.month + new_start.day + new_end.year + new_end.month + new_end.day != 6
-        invalid_timing = true
-        puts 'Invalid timing'
-        break
+      if new_start.year + new_start.month + new_start.day +
+        new_end.year + new_end.month + new_end.day != 6 or
+          new_start < bottom_time or new_end < bottom_time
+            invalid_timing = true
+            puts 'Invalid timing'
+            break      
       end
       disposition = (disposition + step).ceil if stretch
     end
@@ -51,6 +53,7 @@ class SubsChanger
   end
 
   def disposition_timing(pos, fps, stretch, disp_seconds)
+    bottom_time = Time.mktime 1, 1, 1
     invalid_timing = false
     if stretch
       step = disp_seconds ? pos : pos / fps
@@ -61,10 +64,12 @@ class SubsChanger
     @reader.cues.each do |cue|
       cue.start += disposition
       cue.ending += disposition
-      if cue.start.year + cue.start.month + cue.start.day + cue.ending.year + cue.ending.month + cue.ending.day != 6
-        invalid_timing = true
-        puts 'Invalid timing'
-        break
+      if cue.start.year + cue.start.month + cue.start.day +
+        cue.ending.year + cue.ending.month + cue.ending.day != 6 or
+          cue.start < bottom_time or cue.ending < bottom_time
+            invalid_timing = true
+            puts 'Invalid timing'
+            break      
       end
       disposition += step if stretch
     end
