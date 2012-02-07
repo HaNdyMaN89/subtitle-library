@@ -5,6 +5,7 @@ class SubsChanger
   def initialize(subs_path)
     @subs_path = subs_path
     @reader = SubsReader.new subs_path
+    @reader.load_cues
   end
 
   def shift(disp_type, pos, fps)
