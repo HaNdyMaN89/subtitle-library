@@ -1,5 +1,5 @@
 class Cue
-  attr_reader :start, :ending, :text
+  attr_accessor :start, :ending, :text
 
   def initialize(start, ending, text)
     @start = start
