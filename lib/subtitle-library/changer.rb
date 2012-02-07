@@ -90,7 +90,7 @@ class SubsChanger
       end
       if carriage_needed
         new_text = ''
-        words = text.split /\s*(#{Regexp.escape(line_break)})*\s*/
+        words = lines.collect { |line| line.split /\s+/ }.flatten
         current_line = ''
         for i in (0 .. words.length - 1)
           current_line += (current_line == '' ? '' : ' ') + words[i]
