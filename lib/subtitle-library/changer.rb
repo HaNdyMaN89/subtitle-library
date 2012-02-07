@@ -8,7 +8,7 @@ class SubsChanger
     @reader.load_cues
   end
 
-  def shift(disp_type, pos, fps)
+  def shift(disp_type, pos, fps = -1)
     fps = @reader.fps if fps == -1
     if @reader.type == 'md'
       disposition_microdvd pos, fps, false, disp_type == 'ss'
@@ -17,7 +17,7 @@ class SubsChanger
     end
   end
 
-  def stretch(disp_type, pos, fps)
+  def stretch(disp_type, pos, fps = -1)
     fps = @reader.fps if fps == -1
     if @reader.type == 'md'
       disposition_microdvd pos, fps, true, disp_type == 'ss'
