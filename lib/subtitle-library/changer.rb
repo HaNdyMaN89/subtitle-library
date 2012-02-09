@@ -30,7 +30,7 @@ class SubsChanger
     bottom_time = Time.mktime 1, 1, 1
     invalid_timing = false
     if stretch
-      step = disp_seconds ? (pos * fps).ceil : pos
+      step = disp_seconds ? pos * fps : pos
       disposition = 0
     else
       disposition = disp_seconds ? (pos * fps).ceil : pos.ceil
