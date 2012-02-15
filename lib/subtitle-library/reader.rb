@@ -1,6 +1,6 @@
 class SubsReader
-  require './regex-patterns.rb'
-  require './cue.rb'
+  require './regex-patterns'
+  require './cue'
   include Patterns
 
   attr_reader :type, :fps
