@@ -78,18 +78,18 @@ class SubRipReader
           last_end_time = end_time
           line = subs.gets
           break unless line
-          text = line
           actual_lines += 1
+          text = line.strip
           strip_line = line.strip
           while strip_line != ''
-            actual_lines += 1
             line = subs.gets
             unless line
-              is_eof = True
+              is_eof = true
               break
             end
-            text += line
+            actual_lines += 1
             strip_line = line.strip
+            text += "\n" + strip_line
           end
           if is_eof
             cues << Cue.new(start_time, end_time, text.rstrip) unless check_syntax
@@ -100,25 +100,28 @@ class SubRipReader
             cues << Cue.new(start_time, end_time, text.rstrip) unless check_syntax
             break
           end
+          actual_lines += 1
           is_eof, actual_lines, strip_line, text = read_until_index subs, actual_lines, line, true, text
-          cues << Cue.new(start_time, end_time, text.rstrip) unless check_syntax
+          cues << Cue.new(start_time, end_time, text.strip) unless check_syntax
           break if is_eof
         elsif check_syntax
           error_log += "Syntax error at line #{actual_lines}.\n"
           line = subs.gets
           break unless line
+          actual_lines += 1
           is_eof, actual_lines, strip_line = read_until_index subs, actual_lines, line, false
           break if is_eof
         else
           line = subs.gets
           break unless line
+          actual_lines += 1
           is_eof, actual_lines, strip_line = read_until_index subs, actual_lines, line, false
           break if is_eof
         end
       end
     end
     if check_syntax
-      error_log == '' ? 'No errors were found.' : error_log
+      error_log == '' ? 'No errors were found.' : error_log.rstrip
     else
       [cues, @fps]
     end
@@ -129,7 +132,7 @@ class SubRipReader
       end_time.year + end_time.month + end_time.day != 6 or
         start_time >= end_time or start_time < last_end_time
           if check_syntax
-            error_log += "Invalid timing at #{actual_lines}.\n"
+            error_log += "Invalid timing at line #{actual_lines}.\n"
           else
             puts "Invalid timing at #{actual_lines}.\n"
           end
@@ -140,16 +143,16 @@ class SubRipReader
 
   def read_until_timing(subs, actual_lines)
     line = subs.gets
-    actual_lines += 1
     return true unless line
+    actual_lines += 1
     strip_line = line.strip
     while strip_line == '' or /\A\d+$/ =~ strip_line
-      actual_lines += 1
       line = subs.gets
       unless line
         is_eof = true
         break
       end
+      actual_lines += 1
       strip_line = line.strip
     end
     [is_eof, actual_lines, strip_line]
@@ -167,16 +170,15 @@ class SubRipReader
   end
 
   def read_until_index(subs, actual_lines, line, append, text = nil)
-    actual_lines += 1
     strip_line = line.strip
     while not /\A\d+$/ =~ strip_line
-      text += line if append
-      actual_lines += 1
+      text += "\n" + strip_line if append
       line = subs.gets
       unless line
         is_eof = true
         break
       end
+      actual_lines += 1
       strip_line = line.strip
     end
     [is_eof, actual_lines, strip_line] + (append ? [text] : [])
