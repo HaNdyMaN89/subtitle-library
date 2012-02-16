@@ -375,7 +375,7 @@ describe SubRipReader do
         cues << Cue.new(Time.mktime(1, 1, 1, 0, 2, 6, 320000), Time.mktime(1, 1, 1, 0, 2, 7, 639000), "Yes, but I have to go.")
         cues << Cue.new(Time.mktime(1, 1, 1, 0, 2, 7, 840000), Time.mktime(1, 1, 1, 0, 2, 9, 831000), "That'll teach you to excite\nyourself like this.")
         
-        new_reader(path).read_subs(false).should eq cues
+        new_reader(path).read_subs(false)[0].should eq cues
       end
     end
   end
