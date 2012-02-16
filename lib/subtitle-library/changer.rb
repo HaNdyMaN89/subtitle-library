@@ -1,6 +1,6 @@
 class SubsChanger
-  require './reader.rb'
-  require './writer.rb'
+  require 'reader'
+  require 'writer'
 
   def initialize(subs_path)
     @subs_path = subs_path

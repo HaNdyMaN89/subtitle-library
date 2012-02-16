@@ -1,6 +1,6 @@
 class SubsReader
-  require './regex-patterns'
-  require './cue'
+  require 'regex-patterns'
+  require 'cue'
   include Patterns
 
   attr_reader :type, :fps
@@ -69,7 +69,7 @@ class SubRipReader
         break if is_eof
         if SUB_RIP_LINE =~ strip_line
           start_time, end_time = parse_timing strip_line
-          valid_timing, error_log = check_timing start_time, end_time, last_end_time, error_log, check_syntax
+          valid_timing, error_log = check_timing start_time, end_time, last_end_time, error_log, check_syntax, actual_lines
           unless valid_timing
             is_eof, actual_lines, strip_line = read_until_index subs, actual_lines, line, false
             break if is_eof
@@ -127,7 +127,7 @@ class SubRipReader
     end
   end
 
-  def check_timing(start_time, end_time, last_end_time, error_log, check_syntax)
+  def check_timing(start_time, end_time, last_end_time, error_log, check_syntax, actual_lines)
     if start_time.year + start_time.month + start_time.day +
       end_time.year + end_time.month + end_time.day != 6 or
         start_time >= end_time or start_time < last_end_time
