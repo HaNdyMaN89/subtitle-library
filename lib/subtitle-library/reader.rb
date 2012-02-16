@@ -71,7 +71,7 @@ class SubRipReader
           start_time, end_time = parse_timing strip_line
           valid_timing, error_log = check_timing start_time, end_time, last_end_time, error_log, check_syntax, actual_lines
           unless valid_timing
-            is_eof, actual_lines, strip_line = read_until_index subs, actual_lines, line, false
+            is_eof, actual_lines, strip_line = read_until_index subs, actual_lines, strip_line, false
             break if is_eof
             next
           end
@@ -134,9 +134,9 @@ class SubRipReader
           if check_syntax
             error_log += "Invalid timing at line #{actual_lines}.\n"
           else
-            puts "Invalid timing at #{actual_lines}.\n"
+            puts "Invalid timing at line #{actual_lines}.\n"
           end
-          [false, error_log]
+          return [false, error_log]
     end
     [true, error_log]
   end
