@@ -378,5 +378,55 @@ describe SubRipReader do
         new_reader(path).read_subs(false)[0].should eq cues
       end
     end
+
+    it 'loads all cues when syntax is incorrect' do
+      FakeFS do
+        File.open(path, 'w') do |subs|
+          subs.write(<<-eos
+                      12
+                      00:02:04,240 --> 00:02:05,593
+                      It was funny, huh?
+
+                      13
+                      00:02:06,320 -- 00:02:07,639
+                      Yes, but I have to go.
+
+                      14
+                      00:02:07,840 --> 00:02:09,831
+                      That'll teach you to excite
+                      yourself like this.
+                      eos
+                      )
+        end
+        cues = []
+        cues << Cue.new(Time.mktime(1, 1, 1, 0, 2, 4, 240000), Time.mktime(1, 1, 1, 0, 2, 5, 593000), "It was funny, huh?")
+        cues << Cue.new(Time.mktime(1, 1, 1, 0, 2, 7, 840000), Time.mktime(1, 1, 1, 0, 2, 9, 831000), "That'll teach you to excite\nyourself like this.")
+        
+        new_reader(path).read_subs(false)[0].should eq cues
+
+        File.open(path, 'w') do |subs|
+          subs.write(<<-eos
+                      12
+                      00:02:04240 --> 00:02:05,593
+                      It was funny, huh?
+
+                      13
+                      00:02:06,320 --> 00:02:07,639
+                      Yes, but I have to go.
+
+                      14
+                      00:02:07,840 --> 00:02:03,831
+                      That'll teach you to excite
+                      yourself like this.
+                      eos
+                      )
+        end
+        cues = []
+        cues << Cue.new(Time.mktime(1, 1, 1, 0, 2, 6, 320000), Time.mktime(1, 1, 1, 0, 2, 7, 639000), "Yes, but I have to go.")
+
+        new_reader(path).read_subs(false)[0].should eq cues
+      end
+    end
+
   end
 end
