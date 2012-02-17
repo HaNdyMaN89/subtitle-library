@@ -1,6 +1,6 @@
 class SubsReader
-  require 'regex-patterns'
-  require 'cue'
+  require 'subtitle-library/regex-patterns'
+  require 'subtitle-library/cue'
   include Patterns
 
   attr_reader :type, :fps

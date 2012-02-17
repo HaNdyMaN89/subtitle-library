@@ -1,6 +1,6 @@
 class SubsChanger
-  require 'reader'
-  require 'writer'
+  require 'subtitle-library/reader'
+  require 'subtitle-library/writer'
 
   def initialize(subs_path)
     @subs_path = subs_path
