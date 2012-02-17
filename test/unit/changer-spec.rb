@@ -369,4 +369,354 @@ describe SubsChanger do
 
   end
 
+  describe 'stretching subrip format' do
+    path = 'subs.srt'
+
+    it 'stretches the subtitles by seconds' do
+      FakeFS do
+        lines = "1\n"
+        lines += "00:03:40,095 --> 00:03:41,429\n"
+        lines += "You want some water with that?\n\n"
+        lines += "2\n"
+        lines += "00:03:41,513 --> 00:03:42,931\n"
+        lines += "No, no.\nNo, I don't.\n\n"
+        lines += "3\n"
+        lines += "00:03:43,640 --> 00:03:45,058\n"
+        lines += "Looks like you had a night.\n\n"
+
+        File.open(path, 'w') do |subs|
+          subs.write(lines)
+        end
+        
+        new_changer(path).stretch('ss', 1.5)
+
+        lines = "1\n"
+        lines += "00:03:40,095 --> 00:03:41,429\n"
+        lines += "You want some water with that?\n\n"
+        lines += "2\n"
+        lines += "00:03:43,013 --> 00:03:44,431\n"
+        lines += "No, no.\nNo, I don't.\n\n"
+        lines += "3\n"
+        lines += "00:03:46,640 --> 00:03:48,058\n"
+        lines += "Looks like you had a night.\n\n"
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+
+        new_changer(path).stretch('ss', -1.1)
+
+        lines = "1\n"
+        lines += "00:03:40,095 --> 00:03:41,429\n"
+        lines += "You want some water with that?\n\n"
+        lines += "2\n"
+        lines += "00:03:41,912 --> 00:03:43,330\n"
+        lines += "No, no.\nNo, I don't.\n\n"
+        lines += "3\n"
+        lines += "00:03:44,439 --> 00:03:45,857\n"
+        lines += "Looks like you had a night.\n\n"
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+      end
+    end
+
+    it 'stretches the subtitles by frames' do
+      FakeFS do
+        lines = "1\n"
+        lines += "00:03:40,095 --> 00:03:40,429\n"
+        lines += "You want some water with that?\n\n"
+        lines += "2\n"
+        lines += "00:03:41,513 --> 00:03:42,931\n"
+        lines += "No, no.\nNo, I don't.\n\n"
+        lines += "3\n"
+        lines += "00:03:44,640 --> 00:03:46,058\n"
+        lines += "Looks like you had a night.\n\n"
+
+        File.open(path, 'w') do |subs|
+          subs.write(lines)
+        end
+        
+        new_changer(path).stretch('fs', 25)
+
+        lines = "1\n"
+        lines += "00:03:40,095 --> 00:03:40,429\n"
+        lines += "You want some water with that?\n\n"
+        lines += "2\n"
+        lines += "00:03:42,555 --> 00:03:43,973\n"
+        lines += "No, no.\nNo, I don't.\n\n"
+        lines += "3\n"
+        lines += "00:03:46,725 --> 00:03:48,143\n"
+        lines += "Looks like you had a night.\n\n"
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+
+        new_changer(path).stretch('fs', -15, 25)
+
+        lines = "1\n"
+        lines += "00:03:40,095 --> 00:03:40,429\n"
+        lines += "You want some water with that?\n\n"
+        lines += "2\n"
+        lines += "00:03:41,555 --> 00:03:42,973\n"
+        lines += "No, no.\nNo, I don't.\n\n"
+        lines += "3\n"
+        lines += "00:03:44,725 --> 00:03:46,143\n"
+        lines += "Looks like you had a night.\n\n"
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+      end
+    end
+
+    it "doesn't stretch when an invalid timing is calculated" do
+      FakeFS do
+        lines = "1\n"
+        lines += "00:03:40,095 --> 00:03:41,429\n"
+        lines += "You want some water with that?\n\n"
+        lines += "2\n"
+        lines += "00:03:41,513 --> 00:03:42,931\n"
+        lines += "No, no.\nNo, I don't.\n\n"
+        lines += "3\n"
+        lines += "00:03:43,640 --> 00:03:45,058\n"
+        lines += "Looks like you had a night.\n\n"
+
+        File.open(path, 'w') do |subs|
+          subs.write(lines)
+        end
+        
+        new_changer(path).stretch('fs', -10)
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+
+        new_changer(path).stretch('ss', -0.1)
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+      end
+    end
+
+  end
+
+  describe 'stretching microdvd format' do
+    path = 'subs.sub'
+
+    it 'stretchs the subtitles by frames' do
+      FakeFS do
+        lines = "{5277}{5309}You want some water with that?\n"
+        lines += "{5311}{5345}No, no.|No, I don't.\n"
+        lines += "{5362}{5396}Looks like you had a night.\n"
+
+        File.open(path, 'w') do |subs|
+          subs.write(lines)
+        end
+
+        new_changer(path).stretch('fs', 80)
+
+        lines = "{1}{1}23.976\n"
+        lines += "{5277}{5309}You want some water with that?\n"
+        lines += "{5391}{5425}No, no.|No, I don't.\n"
+        lines += "{5522}{5556}Looks like you had a night.\n"
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+
+        new_changer(path).stretch('fs', -10)
+
+        lines = "{1}{1}23.976\n"
+        lines += "{5277}{5309}You want some water with that?\n"
+        lines += "{5381}{5415}No, no.|No, I don't.\n"
+        lines += "{5502}{5536}Looks like you had a night.\n"
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+      end
+    end
+
+    it 'stretchs the subtitles by seconds' do
+      FakeFS do
+        lines = "{5277}{5309}You want some water with that?\n"
+        lines += "{5311}{5345}No, no.|No, I don't.\n"
+        lines += "{5362}{5396}Looks like you had a night.\n"
+
+        File.open(path, 'w') do |subs|
+          subs.write(lines)
+        end
+
+        new_changer(path).stretch('ss', 10)
+
+        lines = "{1}{1}23.976\n"
+        lines += "{5277}{5309}You want some water with that?\n"
+        lines += "{5551}{5585}No, no.|No, I don't.\n"
+        lines += "{5842}{5876}Looks like you had a night.\n"
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+
+        new_changer(path).stretch('ss', -1.2, 25)
+
+        lines = "{1}{1}23.976\n"
+        lines += "{5277}{5309}You want some water with that?\n"
+        lines += "{5521}{5555}No, no.|No, I don't.\n"
+        lines += "{5782}{5816}Looks like you had a night.\n"
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+      end
+    end
+
+    it "doesn't stretch when an invalid timing is calculated" do
+      FakeFS do
+        lines = "{5277}{5309}You want some water with that?\n"
+        lines += "{5311}{5345}No, no.|No, I don't.\n"
+        lines += "{5362}{5396}Looks like you had a night.\n"
+
+        File.open(path, 'w') do |subs|
+          subs.write(lines)
+        end
+
+        new_changer(path).stretch('fs', -3)
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+
+        new_changer(path).stretch('ss', -1, 25)
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+      end
+    end
+
+  end
+
+  describe 'stretching subviewer format' do
+    path = 'subs.sub'
+
+    it 'stretches the subtitles by seconds' do
+      FakeFS do
+        lines = "00:03:40.095,00:03:41.429\n"
+        lines += "You want some water with that?\n\n"
+        lines += "00:03:41.513,00:03:42.931\n"
+        lines += "No, no.[br]No, I don't.\n\n"
+        lines += "00:03:43.640,00:03:45.058\n"
+        lines += "Looks like you had a night.\n\n"
+
+        File.open(path, 'w') do |subs|
+          subs.write(lines)
+        end
+        
+        new_changer(path).stretch('ss', 1.5)
+
+        lines = "[STYLE]no\n"
+        lines += "00:03:40.095,00:03:41.429\n"
+        lines += "You want some water with that?\n\n"
+        lines += "00:03:43.013,00:03:44.431\n"
+        lines += "No, no.[br]No, I don't.\n\n"
+        lines += "00:03:46.640,00:03:48.058\n"
+        lines += "Looks like you had a night.\n\n"
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+
+        new_changer(path).stretch('ss', -1.1)
+
+        lines = "[STYLE]no\n"
+        lines += "00:03:40.095,00:03:41.429\n"
+        lines += "You want some water with that?\n\n"
+        lines += "00:03:41.912,00:03:43.330\n"
+        lines += "No, no.[br]No, I don't.\n\n"
+        lines += "00:03:44.439,00:03:45.857\n"
+        lines += "Looks like you had a night.\n\n"
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+      end
+    end
+
+    it 'stretches the subtitles by frames' do
+      FakeFS do
+        lines = "00:03:40.095,00:03:40.429\n"
+        lines += "You want some water with that?\n\n"
+        lines += "00:03:41.513,00:03:42.931\n"
+        lines += "No, no.[br]No, I don't.\n\n"
+        lines += "00:03:44.640,00:03:46.058\n"
+        lines += "Looks like you had a night.\n\n"
+
+        File.open(path, 'w') do |subs|
+          subs.write(lines)
+        end
+        
+        new_changer(path).stretch('fs', 25)
+
+        lines = "[STYLE]no\n"
+        lines += "00:03:40.095,00:03:40.429\n"
+        lines += "You want some water with that?\n\n"
+        lines += "00:03:42.555,00:03:43.973\n"
+        lines += "No, no.[br]No, I don't.\n\n"
+        lines += "00:03:46.725,00:03:48.143\n"
+        lines += "Looks like you had a night.\n\n"
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+
+        new_changer(path).stretch('fs', -15, 25)
+
+        lines = "[STYLE]no\n"
+        lines += "00:03:40.095,00:03:40.429\n"
+        lines += "You want some water with that?\n\n"
+        lines += "00:03:41.555,00:03:42.973\n"
+        lines += "No, no.[br]No, I don't.\n\n"
+        lines += "00:03:44.725,00:03:46.143\n"
+        lines += "Looks like you had a night.\n\n"
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+      end
+    end
+
+    it "doesn't stretch when an invalid timing is calculated" do
+      FakeFS do
+        lines = "00:03:40.095,00:03:41.429\n"
+        lines += "You want some water with that?\n\n"
+        lines += "00:03:41.513,00:03:42.931\n"
+        lines += "No, no.[br]No, I don't.\n\n"
+        lines += "00:03:43.640,00:03:45.058\n"
+        lines += "Looks like you had a night.\n\n"
+
+        File.open(path, 'w') do |subs|
+          subs.write(lines)
+        end
+        
+        new_changer(path).stretch('fs', -10)
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+
+        new_changer(path).stretch('ss', -1)
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+      end
+    end
+
+  end
+
 end
