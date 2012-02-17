@@ -16,7 +16,9 @@ describe SubsWriter do
   end
 
   def new_writer(path)
-    SubsWriter.new (SubsReader.new path)
+    reader = SubsReader.new path
+    reader.load_cues
+    SubsWriter.new reader
   end
 
   describe 'saving from subrip to subrip format' do
