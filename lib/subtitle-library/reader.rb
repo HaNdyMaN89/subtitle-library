@@ -280,7 +280,7 @@ class SubviewerReader
         if strip_line != ''
           if SUBVIEWER_LINE =~ strip_line
             start_time, end_time = parse_timing strip_line
-            valid_timing, error_log = check_timing start_time, end_time, last_end_time, error_log, check_syntax
+            valid_timing, error_log = check_timing start_time, end_time, last_end_time, error_log, check_syntax, actual_lines
             unless valid_timing
               break unless subs.gets
               line = subs.gets
@@ -333,7 +333,7 @@ class SubviewerReader
     [start_time, Time.mktime(*time_args)]
   end
 
-  def check_timing(start_time, end_time, last_end_time, error_log, check_syntax)
+  def check_timing(start_time, end_time, last_end_time, error_log, check_syntax, actual_lines)
     if start_time.year + start_time.month + start_time.day +
       end_time.year + end_time.month + end_time.day != 6 or
         start_time >= end_time or start_time < last_end_time
