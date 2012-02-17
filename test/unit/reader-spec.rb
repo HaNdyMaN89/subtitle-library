@@ -2,6 +2,97 @@ $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', '..', 'lib', 'subtitl
 require 'reader'
 require 'fakefs/safe'
 
+describe SubsReader do
+  include FakeFS
+
+  def setup
+    FakeFS.activate!
+    FileSystem.clear
+  end
+
+  def teardown
+    FakeFS.deactivate!
+  end
+
+  def new_reader(path)
+    SubsReader.new path
+  end
+
+  describe 'type finding' do
+    path = 'subs.sub'
+
+    it 'validates the type correctly' do
+      FakeFS do
+        File.open(path, 'w') do |subs|
+          subs.write(<<-eos
+                      12
+                      00:02:04,240 --> 00:02:05,593
+                      It was funny, huh?
+
+                      13
+                      00:02:06,320 --> 00:02:07,639
+                      Yes, but I have to go.
+
+                      14
+                      00:02:07,840 --> 00:02:09,831
+                      That'll teach you to excite yourself like this.
+
+                      15
+                      00:02:10,040 --> 00:02:12,508
+                      Stop somewhere if you can.
+
+                      16
+                      00:02:43,560 --> 00:02:46,028
+                      Honey, you're not at school.
+                      Don't bother poor Elly.
+                    eos
+                    )
+        end
+        new_reader(path).type.should eq 'sr'
+
+        File.open(path, 'w') do |subs|
+          subs.write(<<-eos
+                        {5277}{5309}You want some water with that?
+                        {5311}{5345}No, no. No, I don't.
+                        {5362}{5396}Looks like you had a night.
+                        {5529}{5562}They look perfect.
+                        eos
+                    )
+        end
+        new_reader(path).type.should eq 'md'
+
+        File.open(path, 'w') do |subs|
+          subs.write(<<-eos
+                      00:02:04.240,00:2:5.593
+                      It was funny, huh?
+
+                      00:02:06.20,00:02:07.639
+                      Yes, but I have to go.
+
+                      00:2:07.840,00:02:09.831
+                      That'll teach you to excite yourself like this.
+
+                      00:02:10.00,00:02:12.5
+                      Stop somewhere if you can.
+                        eos
+                    )
+        end
+        new_reader(path).type.should eq 'sv'
+
+        File.open(path, 'w') do |subs|
+          subs.write(<<-eos
+                        some
+                        other
+                        format
+                        eos
+                    )
+        end
+        new_reader(path).type.should eq 'uk'
+      end
+    end
+  end
+end
+
 describe SubRipReader do
   include FakeFS
 
@@ -537,6 +628,38 @@ describe MicroDVDReader do
       end
     end
 
+  end
+
+  describe 'reading finds the fps if available' do
+    path = 'subs.sub'
+
+    it 'validates correct syntax' do
+      FakeFS do
+        File.open(path, 'w') do |subs|
+          subs.write(<<-eos
+                        {5277}{5309}You want some water with that?
+                        {5311}{5345}No, no. No, I don't.
+                        {5362}{5396}Looks like you had a night.
+                        {5529}{5562}They look perfect.
+                        eos
+                    )
+        end
+
+        new_reader(path).read_subs(false)[1].should eq 23.976
+
+        File.open(path, 'w') do |subs|
+          subs.write(<<-eos
+                        {1}{1}25
+                        {5311}{5345}No, no. No, I don't.
+                        {5362}{5396}Looks like you had a night.
+                        {5529}{5562}They look perfect.
+                        eos
+                    )
+        end
+
+        new_reader(path).read_subs(false)[1].should eq 25
+      end
+    end
   end
 
   describe 'cue loading' do
