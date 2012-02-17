@@ -508,7 +508,95 @@ describe MicroDVDReader do
       end
     end
 
+    it 'validates invalid frame format' do
+      FakeFS do
+        File.open(path, 'w') do |subs|
+          subs.write(<<-eos
+                        {5277}5309}You want some water with that?
+                        {5311}{5345}No, no. No, I don't.
+                        {5362}{5396}Looks like you had a night.
+                        {5529}{5562}They look perfect.
+                        eos
+                    )
+        end
+
+        new_reader(path).read_subs(true).should eq "Syntax error at line 1."
+
+        File.open(path, 'w') do |subs|
+          subs.write(<<-eos
+                        {5277}{5309}{y:i}You want some water with that?
+                        {5311}{5345}No, no. No, I don't.
+                        {,5362}{5396}Looks like you had a night.
+                        {5529{5562}They look perfect.
+                        eos
+                    )
+        end
+
+        new_reader(path).read_subs(true).should eq "Syntax error at line 3.\nSyntax error at line 4."
+
+      end
+    end
+
   end
+
+  describe 'cue loading' do
+    path = 'subs.sub'
+
+    it 'loads all cues when syntax is correct' do
+      FakeFS do
+        File.open(path, 'w') do |subs|
+          subs.write(<<-eos
+                        {5277}{5309}You want some water with that?
+                        {5311}{5345}No, no.|No, I don't.
+                        {5362}{5396}Looks like you had a night.
+                        eos
+                    )
+        end
+
+        cues = []
+        cues << Cue.new(5277, 5309, "You want some water with that?")
+        cues << Cue.new(5311, 5345, "No, no.\nNo, I don't.")
+        cues << Cue.new(5362, 5396, "Looks like you had a night.")
+        
+        new_reader(path).read_subs(false)[0].should eq cues
+      end
+    end
+
+    it 'loads valid cues when syntax is incorrect' do
+      FakeFS do
+        File.open(path, 'w') do |subs|
+          subs.write(<<-eos
+                        {5277}{309}You want some water with that?
+                        {5311}{5345}No, no.|No, I don't.
+                        {5362}{5396}Looks like you had a night.
+                        eos
+                    )
+        end
+
+        cues = []
+        cues << Cue.new(5311, 5345, "No, no.\nNo, I don't.")
+        cues << Cue.new(5362, 5396, "Looks like you had a night.")
+        
+        new_reader(path).read_subs(false)[0].should eq cues
+
+        File.open(path, 'w') do |subs|
+          subs.write(<<-eos
+                        {5277{5309}You want some water with that?
+                        {5311}{5345}No, no.|No, I don't.
+                        {532}{5396}Looks like you had a night.
+                        eos
+                    )
+        end
+
+        cues = []
+        cues << Cue.new(5311, 5345, "No, no.\nNo, I don't.")
+        
+        new_reader(path).read_subs(false)[0].should eq cues
+      end
+    end
+
+  end
+
 end
 
 describe SubviewerReader do
