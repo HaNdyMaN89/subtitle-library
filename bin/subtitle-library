@@ -63,13 +63,13 @@ if operation and subs_path
       when 'verify'
         puts reader.read_subs true
       when 'carriage'
-        unless carriage or carriage <= 0
+        if not carriage or carriage <= 0
           puts "Select a positive number for a max line length (-cr option).\n" + HELP_MENU
         else
           SubsChanger.new(subs_path).set_max_line carriage
         end
       when 'shift'
-        unless seconds and frames
+        if not seconds and not frames
           puts "Select an amount of seconds (-ss) or frames (-fs) to shift by.\n" + HELP_MENU
         elsif seconds
           SubsChanger.new(subs_path).shift 'ss', seconds, fps
@@ -77,7 +77,7 @@ if operation and subs_path
           SubsChanger.new(subs_path).shift 'fs', frames, fps
         end
       when 'stretch'
-        unless seconds and frames
+        if not seconds and not frames
           puts "Select an amount of seconds (-ss) or frames (-fs) to stretch by.\n" + HELP_MENU
         elsif seconds
           SubsChanger.new(subs_path).stretch 'ss', seconds, fps
@@ -85,7 +85,7 @@ if operation and subs_path
           SubsChanger.new(subs_path).stretch 'fs', frames, fps
         end
       when 'save'
-        unless new_path and type
+        if not new_path or not type
           puts "Select the new name of the file (-nf) and the type it should be (-t).\n" + HELP_MENU
         elsif not ['sr', 'md', 'sv'].member? type
           puts "Select the type of the new file (-t option) from one of the listed below.\n" + HELP_MENU
@@ -95,10 +95,8 @@ if operation and subs_path
       else
         puts "Select one of the operations listed below.\n" + HELP_MENU
     end
-  end
-end
-   
-else if not operation
+  end   
+elsif not operation
   puts "Select an operation to be performed (-op option).\n" + HELP_MENU
 else
   puts "Select a local subtitle file (-f option).\n" + HELP_MENU
