@@ -67,7 +67,7 @@ class SubsWriter
       @cues.each do |cue|
         start_frame = ((cue.start - bottom_time) * fps).ceil
         end_frame = ((cue.ending - bottom_time) * fps).ceil
-        subs.write('{' + start_frame.to_s + '}{' + end_frame.to_s + '}' + + cue.text.gsub("\n", "|") + "\n")
+        subs.write('{' + start_frame.to_s + '}{' + end_frame.to_s + '}' + cue.text.gsub("\n", "|") + "\n")
       end
     end
   end
