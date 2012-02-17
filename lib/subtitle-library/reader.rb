@@ -201,16 +201,16 @@ class MicroDVDReader
     File.open(@subs_path, 'r') do |subs|
       line, actual_lines = find_out_fps subs
       while line
-        actual_lines += 1
         strip_line = line.strip
         if strip_line != ''
           if MICRO_DVD_LINE =~ strip_line
-            last_end_frame, error_log = add_new_line strip_line, cues, last_end_frame, error_log, check_syntax
+            last_end_frame, error_log = add_new_line strip_line, cues, last_end_frame, error_log, check_syntax, actual_lines
           elsif check_syntax
             error_log += "Syntax error at line #{actual_lines}.\n"
           end
         end
         line = subs.gets
+        actual_lines += 1
       end
     end
     if check_syntax
@@ -222,9 +222,8 @@ class MicroDVDReader
 
   def find_out_fps(subs)
     line = subs.gets
-    actual_lines = 0
+    actual_lines = 1
     while line
-      actual_lines += 1
       strip_line = line.strip
       if strip_line != ''
         if MICRO_DVD_LINE =~ strip_line
@@ -232,16 +231,18 @@ class MicroDVDReader
           if /\A\d*\.?\d*$/ =~ first_line
             @fps = first_line.to_f
             line = subs.gets
+            actual_lines += 1
           end
           break
         end
       end
       line = subs.gets
+      actual_lines += 1
     end
     [line, actual_lines]
   end
 
-  def add_new_line(line, cues, last_end_frame, error_log, check_syntax)
+  def add_new_line(line, cues, last_end_frame, error_log, check_syntax, actual_lines)
     match = /\d+/.match line
     start_frame = match.to_s.to_i
     match = /\d+/.match match.post_match
