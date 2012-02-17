@@ -1,5 +1,6 @@
 class SubsWriter
   def initialize(subs_reader)
+    subs_reader.load_cues
     @cues = subs_reader.cues
     @fps = subs_reader.fps
     @subs_type = subs_reader.type
@@ -23,7 +24,7 @@ class SubsWriter
   end
 
   def save_frames_to_frames(new_path)
-    File.open(@subs_path, 'w') do |subs|
+    File.open(new_path, 'w') do |subs|
       subs.write('{1}{1}' + @fps.to_s + "\n")
       @cues.each do |cue|
         subs.write('{' + cue.start.to_s + '}{' + cue.ending.to_s + '}' + cue.text.gsub("\n", "|") + "\n")
@@ -34,7 +35,7 @@ class SubsWriter
   def save_frames_to_timing(new_path, new_type, fps)
     line_count = 1
     bef_mil, bet_start_end = new_type == 'sr' ? [',', ' --> '] : ['.', ',']
-    File.open(@subs_path, 'w') do |subs|
+    File.open(new_path, 'w') do |subs|
       subs.write("[STYLE]no\n") if sub_type == 'sv'
       @cues.each do |cue|
         start = Time.mktime(1,1,1) + cue.start / fps
@@ -58,7 +59,7 @@ class SubsWriter
   end
 
   def save_timing_to_frames(new_path, fps)
-    File.open(@subs_path, 'w') do |subs|
+    File.open(new_path, 'w') do |subs|
       subs.write('{1}{1}' + fps.to_s + "\n")
       bottom_time = Time.mktime 1, 1, 1
       @cues.each do |cue|
@@ -72,7 +73,7 @@ class SubsWriter
   def save_timing_to_timing(new_path, new_type)
     line_count = 1
     bef_mil, bet_start_end = new_type == 'sr' ? [',', ' --> '] : ['.', ',']
-    File.open(@subs_path, 'w') do |subs|
+    File.open(new_path, 'w') do |subs|
       subs.write("[STYLE]no\n") if sub_type == 'sv'
       @cues.each do |cue|
         timing_line = cue.start.to_s.split(' ')[1] + bef_mil + ("%03d" % (cue.start.usec / 1000)) + bet_start_end
