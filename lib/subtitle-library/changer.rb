@@ -86,7 +86,7 @@ class SubsChanger
     line_break = @reader.type == 'sr' ? "\n" : (@reader.type == 'md' ? '|' : '[br]')
     @reader.cues.each do |cue|
       text = cue.text
-      lines = text.split /(#{Regexp.escape(line_break)})+/
+      lines = text.split /\n+/
       carriage_needed = false
       lines.each do |line|
         if line.length > max_line
