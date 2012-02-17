@@ -431,6 +431,86 @@ describe SubRipReader do
   end
 end
 
+describe MicroDVDReader do
+  include FakeFS
+
+  def setup
+    FakeFS.activate!
+    FileSystem.clear
+  end
+
+  def teardown
+    FakeFS.deactivate!
+  end
+
+  def new_reader(path)
+    MicroDVDReader.new path
+  end
+
+  describe 'syntax checking' do
+    path = 'subs.sub'
+
+    it 'validates correct syntax' do
+      FakeFS do
+        File.open(path, 'w') do |subs|
+          subs.write(<<-eos
+                        {5277}{5309}You want some water with that?
+                        {5311}{5345}No, no. No, I don't.
+                        {5362}{5396}Looks like you had a night.
+                        {5529}{5562}They look perfect.
+                        eos
+                    )
+        end
+
+        new_reader(path).read_subs(true).should eq "No errors were found."
+
+        File.open(path, 'w') do |subs|
+          subs.write(<<-eos
+                        {5277}{5309}{y:i}You want some water with that?
+                        {5311}{5345}No, no. No, I don't.
+                        {5362}{5396}Looks like you had a night.
+                        {5529}{5562}They look perfect.
+                        eos
+                    )
+        end
+
+        new_reader(path).read_subs(true).should eq "No errors were found."
+
+      end
+    end
+
+    it 'validates invalid frames' do
+      FakeFS do
+        File.open(path, 'w') do |subs|
+          subs.write(<<-eos
+                        {5277}{309}You want some water with that?
+                        {5311}{5345}No, no. No, I don't.
+                        {5362}{5396}Looks like you had a night.
+                        {5529}{5562}They look perfect.
+                        eos
+                    )
+        end
+
+        new_reader(path).read_subs(true).should eq "Syntax error at line 1."
+
+        File.open(path, 'w') do |subs|
+          subs.write(<<-eos
+                        {5277}{5309}{y:i}You want some water with that?
+                        {5311}{535}No, no. No, I don't.
+                        {5362}{5396}Looks like you had a night.
+                        {552}{5562}They look perfect.
+                        eos
+                    )
+        end
+
+        new_reader(path).read_subs(true).should eq "Syntax error at line 2.\nSyntax error at line 4."
+
+      end
+    end
+
+  end
+end
+
 describe SubviewerReader do
   include FakeFS
 
@@ -714,7 +794,7 @@ describe SubviewerReader do
       end
     end
 
-    it 'loads all cues when syntax is incorrect' do
+    it 'loads the valid cues when syntax is incorrect' do
       FakeFS do
         File.open(path, 'w') do |subs|
           subs.write(<<-eos
