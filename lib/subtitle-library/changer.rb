@@ -28,6 +28,7 @@ class SubsChanger
 
   def disposition_microdvd(pos, fps, stretch, disp_seconds)
     bottom_time = Time.mktime 1, 1, 1
+    last_end_time = bottom_time
     invalid_timing = false
     if stretch
       step = disp_seconds ? pos * fps : pos
@@ -42,11 +43,13 @@ class SubsChanger
       new_end = bottom_time + cue.ending / fps
       if new_start.year + new_start.month + new_start.day +
         new_end.year + new_end.month + new_end.day != 6 or
-          new_start < bottom_time or new_end < bottom_time
-            invalid_timing = true
-            puts 'Invalid timing'
-            break
+          new_start < bottom_time or new_end < bottom_time or
+            new_start < last_end_time
+              invalid_timing = true
+              puts 'Invalid timing'
+              break
       end
+      last_end_time = new_end
       disposition = (disposition + step).ceil if stretch
     end
     SubsWriter.new(@reader).save_as(@subs_path, @reader.type) unless invalid_timing
@@ -54,6 +57,7 @@ class SubsChanger
 
   def disposition_timing(pos, fps, stretch, disp_seconds)
     bottom_time = Time.mktime 1, 1, 1
+    last_end_time = bottom_time
     invalid_timing = false
     if stretch
       step = disp_seconds ? pos : pos / fps
@@ -66,11 +70,13 @@ class SubsChanger
       cue.ending += disposition
       if cue.start.year + cue.start.month + cue.start.day +
         cue.ending.year + cue.ending.month + cue.ending.day != 6 or
-          cue.start < bottom_time or cue.ending < bottom_time
-            invalid_timing = true
-            puts 'Invalid timing'
-            break
+          cue.start < bottom_time or cue.ending < bottom_time or
+            cue.start < last_end_time
+              invalid_timing = true
+              puts 'Invalid timing'
+              break
       end
+      last_end_time = cue.ending
       disposition += step if stretch
     end
     SubsWriter.new(@reader).save_as(@subs_path, @reader.type) unless invalid_timing
