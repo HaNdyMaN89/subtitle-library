@@ -740,7 +740,7 @@ describe SubviewerReader do
                       00:02:04240,00:02:05.593
                       It was funny, huh?
 
-                      00:02:06,320,00:02:07,639
+                      00:02:06.320,00:02:07.639
                       Yes, but I have to go.
 
                       00:02:07.840,00:02:.831
