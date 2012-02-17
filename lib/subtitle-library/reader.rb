@@ -283,6 +283,7 @@ class SubviewerReader
             unless valid_timing
               break unless subs.gets
               line = subs.gets
+              actual_lines += 2
               next
             end
             line = subs.gets
@@ -290,11 +291,16 @@ class SubviewerReader
             actual_lines += 1
             cues << Cue.new(start_time, end_time, line.strip.gsub('[br]', "\n")) unless check_syntax
             last_end_time = end_time
-          elsif check_syntax
-            error_log += "Syntax error at line #{actual_lines}.\n"
+          else
+            error_log += "Syntax error at line #{actual_lines}.\n" if check_syntax
+            break unless subs.gets
+            line = subs.gets
+            actual_lines += 2
+            next
           end
         end
         line = subs.gets
+        actual_lines += 1
       end
     end
     if check_syntax
@@ -341,7 +347,7 @@ class SubviewerReader
           else
             puts "Invalid timing at line #{actual_lines}.\n"
           end
-          [false, error_log]
+          return [false, error_log]
     end
     [true, error_log]
   end
