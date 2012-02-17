@@ -719,4 +719,170 @@ describe SubsChanger do
 
   end
 
+  describe 'setting the max line length of the subrip format' do
+    path = 'subs.srt'
+
+    it 'sets the max line length where needed' do
+      FakeFS do
+        lines = "1\n"
+        lines += "00:03:40,095 --> 00:03:41,429\n"
+        lines += "You want some water with that?\n\n"
+        lines += "2\n"
+        lines += "00:03:41,513 --> 00:03:42,931\n"
+        lines += "No, no.\nNo, I don't.\n\n"
+        lines += "3\n"
+        lines += "00:03:43,640 --> 00:03:45,058\n"
+        lines += "Looks like you had a night.\n\n"
+
+        File.open(path, 'w') do |subs|
+          subs.write(lines)
+        end
+        
+        new_changer(path).set_max_line(14)
+
+        lines = "1\n"
+        lines += "00:03:40,095 --> 00:03:41,429\n"
+        lines += "You want some water\nwith that?\n\n"
+        lines += "2\n"
+        lines += "00:03:41,513 --> 00:03:42,931\n"
+        lines += "No, no.\nNo, I don't.\n\n"
+        lines += "3\n"
+        lines += "00:03:43,640 --> 00:03:45,058\n"
+        lines += "Looks like you had\na night.\n\n"
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+      end
+    end
+
+    it "doesn't change the subtitles when not needed" do
+      FakeFS do
+        lines = "1\n"
+        lines += "00:03:40,095 --> 00:03:41,429\n"
+        lines += "You want some water with that?\n\n"
+        lines += "2\n"
+        lines += "00:03:41,513 --> 00:03:42,931\n"
+        lines += "No, no.\nNo, I don't.\n\n"
+        lines += "3\n"
+        lines += "00:03:43,640 --> 00:03:45,058\n"
+        lines += "Looks like you had a night.\n\n"
+
+        File.open(path, 'w') do |subs|
+          subs.write(lines)
+        end
+        
+        new_changer(path).set_max_line(32)
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+      end
+    end
+
+  end
+
+  describe 'setting the max line length of the microdvd format' do
+    path = 'subs.sub'
+
+    it 'sets the max line length where needed' do
+      FakeFS do
+        lines = "{5277}{5309}You want some water with that?\n"
+        lines += "{5311}{5345}No, no.|No, I don't.\n"
+        lines += "{5362}{5396}Looks like you had a night.\n"
+
+        File.open(path, 'w') do |subs|
+          subs.write(lines)
+        end
+
+        new_changer(path).set_max_line(14)
+
+        lines = "{1}{1}23.976\n"
+        lines += "{5277}{5309}You want some water|with that?\n"
+        lines += "{5311}{5345}No, no.|No, I don't.\n"
+        lines += "{5362}{5396}Looks like you had|a night.\n"
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+      end
+    end
+
+    it "doesn't change the subtitles when not needed" do
+      FakeFS do
+        lines = "{1}{1}23.976\n"
+        lines += "{5277}{5309}You want some water with that?\n"
+        lines += "{5311}{5345}No, no.|No, I don't.\n"
+        lines += "{5362}{5396}Looks like you had a night.\n"
+
+        File.open(path, 'w') do |subs|
+          subs.write(lines)
+        end
+
+        new_changer(path).set_max_line(32)
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+      end
+    end
+  end
+
+
+  describe 'setting the max line length of the subviewer format' do
+    path = 'subs.sub'
+
+    it 'sets the max line length where needed' do
+      FakeFS do
+        lines = "00:03:40.095,00:03:41.429\n"
+        lines += "You want some water with that?\n\n"
+        lines += "00:03:41.513,00:03:42.931\n"
+        lines += "No, no.[br]No, I don't.\n\n"
+        lines += "00:03:43.640,00:03:45.058\n"
+        lines += "Looks like you had a night.\n\n"
+
+        File.open(path, 'w') do |subs|
+          subs.write(lines)
+        end
+
+        new_changer(path).set_max_line(14)
+
+        lines = "[STYLE]no\n"
+        lines += "00:03:40.095,00:03:41.429\n"
+        lines += "You want some water[br]with that?\n\n"
+        lines += "00:03:41.513,00:03:42.931\n"
+        lines += "No, no.[br]No, I don't.\n\n"
+        lines += "00:03:43.640,00:03:45.058\n"
+        lines += "Looks like you had[br]a night.\n\n"
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+      end
+    end
+
+    it "doesn't change the subtitles when not needed" do
+      FakeFS do
+        lines = "00:03:40.095,00:03:41.429\n"
+        lines += "You want some water with that?\n\n"
+        lines += "00:03:41.513,00:03:42.931\n"
+        lines += "No, no.[br]No, I don't.\n\n"
+        lines += "00:03:43.640,00:03:45.058\n"
+        lines += "Looks like you had a night.\n\n"
+
+        File.open(path, 'w') do |subs|
+          subs.write(lines)
+        end
+
+        new_changer(path).set_max_line(32)
+
+        lines = "[STYLE]no\n" + lines
+
+        File.open(path, 'r') do |subs|
+          subs.read.should eq lines
+        end
+      end
+    end
+  end
+
 end
