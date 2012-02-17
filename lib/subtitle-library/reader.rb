@@ -275,7 +275,6 @@ class SubviewerReader
     File.open(@subs_path, 'r') do |subs|
       actual_lines, error_log, line = read_metadata subs, check_syntax 
       while line
-        actual_lines += 1
         strip_line = line.strip
         if strip_line != ''
           if SUBVIEWER_LINE =~ strip_line
@@ -338,9 +337,9 @@ class SubviewerReader
       end_time.year + end_time.month + end_time.day != 6 or
         start_time >= end_time or start_time < last_end_time
           if check_syntax
-            error_log += "Invalid timing at #{actual_lines}.\n"
+            error_log += "Invalid timing at line #{actual_lines}.\n"
           else
-            puts "Invalid timing at #{actual_lines}.\n"
+            puts "Invalid timing at line #{actual_lines}.\n"
           end
           [false, error_log]
     end
