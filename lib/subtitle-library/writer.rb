@@ -5,16 +5,17 @@ class SubsWriter
     @subs_type = subs_reader.type
   end
 
-  def save_as(new_path, new_type)
+  def save_as(new_path, new_type, fps = -1)
+    fps = @fps if fps == -1
     if @subs_type == 'md'
       if new_type == 'md'
         save_frames_to_frames new_path
       else
-        save_frames_to_timing new_path, new_type
+        save_frames_to_timing new_path, new_type, fps
       end
     else
       if new_type == 'md'
-        save_timing_to_frames new_path
+        save_timing_to_frames new_path, fps
       else
         save_timing_to_timing new_path, new_type
       end
@@ -30,7 +31,7 @@ class SubsWriter
     end
   end
 
-  def save_frames_to_timing(new_path, new_type)
+  def save_frames_to_timing(new_path, new_type, fps)
     line_count = 1
     bef_mil, bet_start_end = new_type == 'sr' ? [',', ' --> '] : ['.', ',']
     File.open(@subs_path, 'w') do |subs|
@@ -56,9 +57,9 @@ class SubsWriter
     end
   end
 
-  def save_timing_to_frames(new_path)
+  def save_timing_to_frames(new_path, fps)
     File.open(@subs_path, 'w') do |subs|
-      subs.write('{1}{1}' + @fps.to_s + "\n")
+      subs.write('{1}{1}' + fps.to_s + "\n")
       bottom_time = Time.mktime 1, 1, 1
       @cues.each do |cue|
         start_frame = ((cue.start - bottom_time) * fps).ceil
