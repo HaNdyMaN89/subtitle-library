@@ -33,6 +33,7 @@ class SubsWriter
   end
 
   def save_frames_to_timing(new_path, new_type, fps)
+    fps = fps.to_f
     line_count = 1
     bef_mil, bet_start_end = new_type == 'sr' ? [',', ' --> '] : ['.', ',']
     File.open(new_path, 'w') do |subs|
@@ -59,6 +60,7 @@ class SubsWriter
   end
 
   def save_timing_to_frames(new_path, fps)
+    fps = fps.to_f
     File.open(new_path, 'w') do |subs|
       subs.write('{1}{1}' + fps.to_s + "\n")
       bottom_time = Time.mktime 1, 1, 1
