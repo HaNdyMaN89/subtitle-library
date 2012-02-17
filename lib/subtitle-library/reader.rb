@@ -214,7 +214,7 @@ class MicroDVDReader
       end
     end
     if check_syntax
-      error_log == '' ? 'No errors were found.' : error_log
+      error_log == '' ? 'No errors were found.' : error_log.rstrip
     else
       [cues, @fps]
     end
@@ -299,7 +299,7 @@ class SubviewerReader
       end
     end
     if check_syntax
-      error_log == '' ? 'No errors were found.' : error_log
+      error_log == '' ? 'No errors were found.' : error_log.rstrip
     else
       [cues, @fps]
     end
