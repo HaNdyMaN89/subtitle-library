@@ -1,0 +1,105 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
+require 'subtitle-library'
+
+HELP_MENU = <<-eos
+-f   : The local file, to do an operation on.
+-op  : The operation to be performed.
+        'verify'   - verify subtitle syntax
+        'carriage' - set the max line length
+        'shift'    - shift the subtitles by seconds/frames
+        'stretch'  - stretch the subtitles
+        'save'     - save the subtitles in new file (perhaps with a new format)
+-cr  : The max line length to be used
+-ss  : The amount of seconds to be used when shifting/stretching
+-fs  : The amount of frames to be used when shifting/stretching
+-fps : Frames per second (will be used when saving/changing subtitles)
+-nf  : The path to the new file to be saved
+-t   : The type of the new file
+        'sr'       - SubRip subtitle type
+        'md'       - MicroDVD type
+        'sv'       - SubViewer type
+eos
+
+index = 0
+fps = -1
+while index < ARGV.length
+  case ARGV[index]
+    when '-f'
+      index += 1
+      subs_path = ARGV[index]
+    when '-op'
+      index += 1
+      operation = ARGV[index]
+    when '-cr'
+      index += 1
+      carriage = ARGV[index].to_i
+    when '-ss'
+      index += 1
+      seconds = ARGV[index].to_f
+    when '-fs'
+      index += 1
+      frames = ARGV[index].to_f
+    when '-fps'
+      index += 1
+      fps = ARGV[index].to_f
+    when '-nf'
+      index += 1
+      new_path = ARGV[index]
+    when '-t'
+      index += 1
+      type = ARGV[index]
+  end
+  index += 1
+end
+
+if operation and subs_path
+  reader = SubsReader.new subs_path
+  if reader.type == 'uk'
+    puts 'Unknown file format.'
+  else
+    case action
+      when 'verify'
+        puts reader.read_subs true
+      when 'carriage'
+        unless carriage or carriage <= 0
+          puts "Select a positive number for a max line length (-cr option).\n" + HELP_MENU
+        else
+          SubsChanger.new(subs_path).set_max_line carriage
+        end
+      when 'shift'
+        unless seconds and frames
+          puts "Select an amount of seconds (-ss) or frames (-fs) to shift by.\n" + HELP_MENU
+        elsif seconds
+          SubsChanger.new(subs_path).shift 'ss', seconds, fps
+        else
+          SubsChanger.new(subs_path).shift 'fs', frames, fps
+        end
+      when 'stretch'
+        unless seconds and frames
+          puts "Select an amount of seconds (-ss) or frames (-fs) to stretch by.\n" + HELP_MENU
+        elsif seconds
+          SubsChanger.new(subs_path).stretch 'ss', seconds, fps
+        else
+          SubsChanger.new(subs_path).stretch 'fs', frames, fps
+        end
+      when 'save'
+        unless new_path and type
+          puts "Select the new name of the file (-nf) and the type it should be (-t).\n" + HELP_MENU
+        elsif not ['sr', 'md', 'sv'].member? type
+          puts "Select the type of the new file (-t option) from one of the listed below.\n" + HELP_MENU
+        else
+          SubsWriter.new(subs_path).save_as new_path, type, fps
+        end
+      else
+        puts "Select one of the operations listed below.\n" + HELP_MENU
+    end
+  end
+end
+   
+else if not operation
+  puts "Select an operation to be performed (-op option).\n" + HELP_MENU
+else
+  puts "Select a local subtitle file (-f option).\n" + HELP_MENU
+end
