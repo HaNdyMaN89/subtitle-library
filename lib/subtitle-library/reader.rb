@@ -196,7 +196,7 @@ class MicroDVDReader
 
   def read_subs(check_syntax)
     cues = []
-    error_log = ""
+    error_log = ''
     last_end_frame = 0
     File.open(@subs_path, 'r') do |subs|
       line, actual_lines = find_out_fps subs
@@ -233,8 +233,8 @@ class MicroDVDReader
             line = subs.gets
             actual_lines += 1
           end
-          break
         end
+        break
       end
       line = subs.gets
       actual_lines += 1
