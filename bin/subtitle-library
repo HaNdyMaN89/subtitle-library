@@ -60,7 +60,7 @@ if operation and subs_path
   if reader.type == 'uk'
     puts 'Unknown file format.'
   else
-    case action
+    case operation
       when 'recognise'
         case reader.type
           when 'sr'
@@ -71,7 +71,7 @@ if operation and subs_path
             puts 'SubViewer format.'
         end
       when 'verify'
-        puts reader.read_subs true
+        puts reader.check_syntax
       when 'carriage'
         if not carriage or carriage <= 0
           puts "Select a positive number for a max line length (-cr option).\n" + HELP_MENU
@@ -100,12 +100,13 @@ if operation and subs_path
         elsif not ['sr', 'md', 'sv'].member? type
           puts "Select the type of the new file (-t option) from one of the listed below.\n" + HELP_MENU
         else
-          SubsWriter.new(subs_path).save_as new_path, type, fps
+          reader.load_cues
+          SubsWriter.new(reader).save_as new_path, type, fps
         end
       else
         puts "Select one of the operations listed below.\n" + HELP_MENU
     end
-  end   
+  end
 elsif not operation
   puts "Select an operation to be performed (-op option).\n" + HELP_MENU
 else
