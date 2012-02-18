@@ -6,20 +6,21 @@ require 'subtitle-library'
 HELP_MENU = <<-eos
 -f   : The local file, to do an operation on.
 -op  : The operation to be performed.
-        'verify'   - verify subtitle syntax
-        'carriage' - set the max line length
-        'shift'    - shift the subtitles by seconds/frames
-        'stretch'  - stretch the subtitles
-        'save'     - save the subtitles in new file (perhaps with a new format)
+        'recognise' - recognise the subtitle format
+        'verify'    - verify subtitle syntax
+        'carriage'  - set the max line length
+        'shift'     - shift the subtitles by seconds/frames
+        'stretch'   - stretch the subtitles
+        'save'      - save the subtitles in new file (perhaps with a new format)
 -cr  : The max line length to be used
 -ss  : The amount of seconds to be used when shifting/stretching
 -fs  : The amount of frames to be used when shifting/stretching
 -fps : Frames per second (will be used when saving/changing subtitles)
 -nf  : The path to the new file to be saved
 -t   : The type of the new file
-        'sr'       - SubRip subtitle type
-        'md'       - MicroDVD type
-        'sv'       - SubViewer type
+        'sr'        - SubRip subtitle type
+        'md'        - MicroDVD type
+        'sv'        - SubViewer type
 eos
 
 index = 0
@@ -60,6 +61,15 @@ if operation and subs_path
     puts 'Unknown file format.'
   else
     case action
+      when 'recognise'
+        case reader.type
+          when 'sr'
+            puts 'SubRip format.'
+          when 'md'
+            puts 'MicroDVD format.'
+          when 'sv'
+            puts 'SubViewer format.'
+        end
       when 'verify'
         puts reader.read_subs true
       when 'carriage'
