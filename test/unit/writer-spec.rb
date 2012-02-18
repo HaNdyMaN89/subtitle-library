@@ -1,18 +1,21 @@
-$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', '..', 'lib', 'subtitle-library')
-require 'writer'
-require 'reader'
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', '..', 'lib')
+require 'subtitle-library'
 require 'fakefs/safe'
 
 describe SubsWriter do
   include FakeFS
 
-  def setup
-    FakeFS.activate!
-    FileSystem.clear
+  RSpec.configure do |config|
+    config.before(:each) do
+      FakeFS.activate!
+      FileSystem.clear
+    end
   end
-
-  def teardown
-    FakeFS.deactivate!
+  
+  RSpec.configure do |config|
+    config.after(:each) do
+      FakeFS.deactivate!
+    end
   end
 
   def new_writer(path)
